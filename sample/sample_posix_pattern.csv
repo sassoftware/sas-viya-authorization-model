@@ -1,0 +1,5 @@
+﻿Pattern,UID,GID,OwnerPermission,GroupPermission,OtherPermission,SetGID,StickyBit
+posix_traverse,1000,1000,rwx,r-x,---,false,false
+posix_rw_sticky,1000,1000,rwx,rwx,---,true,true
+posix_rw,1000,1000,rwx,rwx,---,false,false
+posix_rw_acl,1000,1000|1001|1002,rwx,rwx|r-x|rwx,---,false,false

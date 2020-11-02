@@ -1,0 +1,8 @@
+{
+    "clidir": "/opt/sas/viya/home/bin/",
+	"casserver": "cas-shared-default",
+	"logfile": "gva.log",
+	"loglevel": "INFO",
+	"protocol": "https://",
+	"responselimit": "1000"
+}

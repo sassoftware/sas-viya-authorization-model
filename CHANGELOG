@@ -1,0 +1,78 @@
+# Changelog
+All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [2.3.0] - 2020-10-21
+### Added
+- Flag to user if the provided schema does not match the expectations
+### Changed
+- Fixed issue preventing principals from listing nested folders
+- Rebranded the tool to goViyaAuth. Changed the Environment Variable prefix to GVA_
+### Removed
+## [2.2.1] - 2020-08-26
+### Added
+### Changed
+- Changed the way SAS Viya Custom Groups are managed
+### Removed
+## [2.2.0] - 2020-06-25
+### Added
+- Added support for POSIX ACLs at the File System level
+- Added option to configure OAuth 2.0 Client ID/Secret
+### Changed
+### Removed
+## [2.1.0] - 2020-05-28
+### Added
+- Create nested Custom Group structures
+- Support TLS encrypted connections and optional certificate validation skip
+### Changed
+- Optionally use this program without the sas-admin CLI installed
+### Removed
+## [2.0.1] - 2020-05-21
+### Added
+### Changed
+- Changed error logging for REST responses
+### Removed
+## [2.0.0] - 2020-05-19
+### Added
+- Extended, machine-readable audit logging
+### Changed
+- Removed Python dependency by re-implementing in Go
+- BREAKING: Re-structured CLI commands based on Cobra
+- Removed requirement for sas-admin CLI cas plugin
+### Removed
+- POSIX ACLs
+## [1.0.1] - 2020-03-19
+### Added
+### Changed
+- Fixed attempt to change permissions of non-existent CASLIBs
+- Fixed issue when concatenating with empty URI
+- Fixed compatibility issues with SAS Viya 3.4
+### Removed
+## [1.0.0] - 2020-03-09
+### Added
+### Changed
+- Changed default log format
+- Fixed output format of sas-admin CLI command
+- Suppressed debug loging of initial authentication
+- Fixed initial hardening of SAS Viya Sharing
+### Removed
+## [0.2.0] - 2020-03-04
+### Added
+- Ability to create missing Viya custom groups
+- Ability to harden SAS Viya default settings
+- Ability to assume CAS super-user role
+### Changed
+- Consolidated functions
+### Removed
+## [0.1.1] - 2020-02-26
+### Added
+### Changed
+- Changed minimum requirement to Python 3.5
+### Removed
+## [0.1.0] - 2020-02-25
+### Added
+- Ability to apply & remove IPAP
+- Ability to apply & remove DAP
+- Ability to apply & remove ACL
+- Ability to apply & remove capabilities
+- Ability to create missing FS & Viya content folders
+### Changed
+### Removed

@@ -1,0 +1,5 @@
+﻿Pattern,Principal,GrantType,Permissions
+ipap_lob,per001,object,read
+ipap_lob,per007,object,"read,update,delete,secure,add,remove"
+ipap_lob,per001,conveyed,read
+ipap_lob,per003,conveyed,"read,update,delete"

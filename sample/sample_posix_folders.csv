@@ -1,0 +1,5 @@
+﻿Directory,Pattern
+test,posix_traverse
+test/subtest1,posix_rw_sticky
+test/subtest2,posix_rw
+test/subtest2/test,posix_rw_acl
