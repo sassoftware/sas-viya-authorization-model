@@ -3,17 +3,12 @@
 # Copyright © 2020, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-repo=$1
+repo=${1:-'github.com/sassoftware/sas-viya-authorization-model'}
+platformlist=${2:-'linux/amd64'}
+version=${3:-'testbuild'}
+package=${4:-'goviyaauth'}
 
-IFS='|' read -ra platforms <<< "$2"
-
-version=$3
-
-package=$4
-if [[ -z "$package" ]]; then
-  echo "usage: $0 <package-name>"
-  exit 1
-fi
+IFS='|' read -ra platforms <<< "$platformlist"
 
 for platform in "${platforms[@]}"
 do

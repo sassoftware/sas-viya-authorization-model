@@ -4,9 +4,11 @@
 package cmd
 
 import (
-	"strings"
-
-	"github.com/sassoftware/sas-viya-authorization-model/utils"
+	au "github.com/sassoftware/sas-viya-authorization-model/authorization"
+	co "github.com/sassoftware/sas-viya-authorization-model/connection"
+	fi "github.com/sassoftware/sas-viya-authorization-model/file"
+	lo "github.com/sassoftware/sas-viya-authorization-model/log"
+	pr "github.com/sassoftware/sas-viya-authorization-model/principal"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -18,36 +20,43 @@ var matrixRemoveCmd = &cobra.Command{
 	Long:  `Remove a SAS Viya Platform Capability Matrix [matrix].`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		utils.StartLogging()
-		utils.ManageSession("create")
-		var matrix string
-		var deleteGroups bool
-		var matrixFile []map[string]string
-		deleteGroups, _ = cmd.Flags().GetBool("delete-groups")
-		matrix = args[0]
-		zap.S().Infow("Removing a SAS Viya Platform Capability Matrix", "matrix", matrix, "delete-groups", deleteGroups)
-		matrixFile = utils.ReadCSVFile(matrix, []string{"URI", "Principal", "Permissions"})
-		for _, item := range matrixFile {
-			var group, uri string
-			group = item["Principal"]
-			uri = item["URI"]
-			if deleteGroups {
-				utils.ManageGroup("delete", group, group, "")
+		new(lo.Log).New()
+		deleteGroups, _ := cmd.Flags().GetBool("delete-groups")
+		zap.S().Infow("Removing a SAS Viya Platform Capability Matrix", "matrix", args[0], "delete-groups", deleteGroups)
+		co := new(co.Connection)
+		co.Connect()
+		fi := new(fi.File)
+		fi.Path = args[0]
+		fi.Schema = []string{"URI", "Principal", "Permissions"}
+		fi.Type = "csv"
+		fi.Read()
+		principals := make(map[string]*pr.Principal)
+		for _, item := range fi.Content.([][]string)[1:] {
+			zap.S().Infow("Removing SAS Viya Platform Capability", "item", item)
+			var principal string = item[1]
+			if _, exists := principals[principal]; !exists {
+				principals[principal] = new(pr.Principal)
+				principals[principal].ID = principal
+				principals[principal].Name = principal
+				principals[principal].Type = "group"
+				principals[principal].Connection = co
+				principals[principal].Validate()
 			}
-			if uri != "" {
-				rule := utils.AuthorizationRule{
-					Principal:     group,
-					PrincipalType: "group",
-					Type:          "grant",
-					Enabled:       "false",
-					Permissions:   strings.Split(item["Permissions"], ","),
-					Description:   "Automatically disabled by goViyaAuth",
-					ObjectURI:     uri,
+			if deleteGroups && principals[principal].Exists {
+				principals[principal].Delete()
+			}
+			if item[0] != "" {
+				au := new(au.Authorization)
+				au.Principal = principals[principal]
+				au.Type = "grant"
+				au.ObjectURI = item[0]
+				au.Validate()
+				if au.IDs != nil {
+					au.Delete()
 				}
-				utils.AssertViyaPermissions(rule)
 			}
 		}
-		utils.ManageSession("destroy")
+		co.Disconnect()
 	},
 }
 

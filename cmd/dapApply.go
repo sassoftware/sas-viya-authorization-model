@@ -6,7 +6,11 @@ package cmd
 import (
 	"strings"
 
-	"github.com/sassoftware/sas-viya-authorization-model/utils"
+	ca "github.com/sassoftware/sas-viya-authorization-model/cas"
+	co "github.com/sassoftware/sas-viya-authorization-model/connection"
+	fi "github.com/sassoftware/sas-viya-authorization-model/file"
+	lo "github.com/sassoftware/sas-viya-authorization-model/log"
+	pr "github.com/sassoftware/sas-viya-authorization-model/principal"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -18,59 +22,62 @@ var dapApplyCmd = &cobra.Command{
 	Long:  `Apply a Data Access Pattern definition [pattern] to a list of CASLIBs [caslibs].`,
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		utils.StartLogging()
-		utils.ManageSession("create")
-		var pattern, caslibs string
-		var createGroups bool
-		var patternFile, caslibsFile, join []map[string]string
-		type Settings struct {
-			Principal   string
-			Permissions []string
+		new(lo.Log).New()
+		createGroups, _ := cmd.Flags().GetBool("create-groups")
+		zap.S().Infow("Applying DAP to CASLIBs", "pattern", args[0], "CASLIBs", args[1], "create-groups", createGroups)
+		co := new(co.Connection)
+		co.Connect()
+		fp := new(fi.File)
+		fp.Path = args[0]
+		fp.Schema = []string{"Pattern", "Principal", "Permissions"}
+		fp.Type = "csv"
+		fp.Read()
+		fc := new(fi.File)
+		fc.Path = args[1]
+		fc.Schema = []string{"CASLIB", "Pattern"}
+		fc.Type = "csv"
+		fc.Read()
+		patterns := make(map[string][][]string)
+		principals := make(map[string]*pr.Principal)
+		for _, pattern := range fp.Content.([][]string)[1:] {
+			patterns[pattern[0]] = append(patterns[pattern[0]], pattern[1:])
 		}
-		backlog := make(map[string][]Settings)
-		createGroups, _ = cmd.Flags().GetBool("create-groups")
-		pattern = args[0]
-		caslibs = args[1]
-		zap.S().Infow("Applying DAP to CASLIBs", "pattern", pattern, "caslibs", caslibs, "create-groups", createGroups)
-		patternFile = utils.ReadCSVFile(pattern, []string{"Pattern", "Principal", "GrantType", "Permissions"})
-		caslibsFile = utils.ReadCSVFile(caslibs, []string{"CASLIB", "Pattern"})
-		join = utils.JoinMaps(caslibsFile, patternFile, "Pattern", "inner")
-		for _, item := range join {
-			if item["GrantType"] == "caslib" {
-				backlog[item["CASLIB"]] = append(backlog[item["CASLIB"]], Settings{
-					item["Principal"],
-					strings.Split(item["Permissions"], ","),
-				})
-			}
-		}
-		for caslib, settings := range backlog {
-			if utils.ManageCASLIB("validate", caslib) {
-				acl := []utils.CASACL{}
-				for _, setting := range settings {
-					var group string = setting.Principal
-					if createGroups {
-						utils.ManageGroup("create", group, group, "")
+		for _, caslib := range fc.Content.([][]string)[1:] {
+			cas := new(ca.CASLIB)
+			cas.Connection = co
+			cas.Name = caslib[0]
+			cas.Validate()
+			if cas.Exists {
+				if _, exists := patterns[caslib[1]]; exists {
+					for _, pattern := range patterns[caslib[1]] {
+						var principal string = pattern[0]
+						if _, exists := principals[principal]; !exists {
+							principals[principal] = new(pr.Principal)
+							principals[principal].ID = principal
+							principals[principal].Name = principal
+							principals[principal].Type = "group"
+							principals[principal].Connection = co
+							principals[principal].Validate()
+						}
+						if createGroups && !principals[principal].Exists {
+							principals[principal].Create()
+						}
+						var ac ca.AC = ca.AC{
+							Type:        "grant",
+							Principal:   principals[principal],
+							Permissions: strings.Split(pattern[1], ","),
+						}
+						cas.ACL = append(cas.ACL, ac)
 					}
-					for _, permission := range setting.Permissions {
-						acl = append(acl, utils.CASACL{
-							Identity:     group,
-							IdentityType: "group",
-							Type:         "grant",
-							Permission:   permission,
-						})
-					}
+					cas.Apply()
+				} else {
+					zap.S().Errorw("Pattern is not defined", "CASLIB", caslib[0], "pattern", caslib[1])
 				}
-				acs := utils.AccessControl{
-					CASLIB:      caslib,
-					Description: "Automatically created by goViyaAuth",
-					CASACL:      acl,
-				}
-				utils.AssertCASPermissions(acs)
 			} else {
-				zap.S().Errorw("CASLIB does not exist", "caslib", caslib)
+				zap.S().Errorw("CASLIB does not exist", "CASLIB", caslib[0])
 			}
 		}
-		utils.ManageSession("destroy")
+		co.Disconnect()
 	},
 }
 

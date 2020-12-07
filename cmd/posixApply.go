@@ -20,6 +20,7 @@ var posixApplyCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		utils.StartLogging()
+		zap.S().Warnw("DEPRECATED: All POSIX-related functionality will be dropped with the next release in preparation for SAS Viya 2021")
 		var pattern, folders string
 		var createFolders bool
 		var patternFile, foldersFile, backlog []map[string]string

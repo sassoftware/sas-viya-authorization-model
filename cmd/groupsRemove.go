@@ -4,7 +4,10 @@
 package cmd
 
 import (
-	"github.com/sassoftware/sas-viya-authorization-model/utils"
+	co "github.com/sassoftware/sas-viya-authorization-model/connection"
+	fi "github.com/sassoftware/sas-viya-authorization-model/file"
+	lo "github.com/sassoftware/sas-viya-authorization-model/log"
+	pr "github.com/sassoftware/sas-viya-authorization-model/principal"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -16,32 +19,46 @@ var groupsRemoveCmd = &cobra.Command{
 	Long:  `Remove a SAS Viya Custom Groups structure [groups].`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		utils.StartLogging()
-		utils.ManageSession("create")
-		var groups string
-		var groupsFile []map[string]string
-		var membersOnly bool
-		membersOnly, _ = cmd.Flags().GetBool("members")
-		groups = args[0]
-		groupsFile = utils.ReadCSVFile(groups, []string{"ParentGroupID", "GroupID", "GroupName", "UserID"})
+		new(lo.Log).New()
+		membersOnly, _ := cmd.Flags().GetBool("members")
 		if membersOnly {
-			zap.S().Infow("Removing members from a SAS Viya Custom Groups structure", "groups", groups)
+			zap.S().Infow("Removing members from a SAS Viya Custom Groups structure", "groups", args[0])
 		} else {
-			zap.S().Infow("Removing a SAS Viya Custom Groups structure entirely", "groups", groups)
+			zap.S().Infow("Removing a SAS Viya Custom Groups structure", "groups", args[0])
 		}
-		for _, item := range groupsFile {
-			var groupID, groupName string
-			groupID = item["GroupID"]
-			groupName = item["GroupName"]
-			if groupID != "" {
-				if membersOnly {
-					utils.ManageGroup("deleteMembers", groupID, groupName, "")
-				} else {
-					utils.ManageGroup("delete", groupID, groupName, "")
+		co := new(co.Connection)
+		co.Connect()
+		fi := new(fi.File)
+		fi.Path = args[0]
+		fi.Schema = []string{"ParentGroupID", "GroupID", "GroupName", "UserID"}
+		fi.Type = "csv"
+		fi.Read()
+		groups := make(map[string]*pr.Principal)
+		for _, item := range fi.Content.([][]string)[1:] {
+			var group string = item[1]
+			if group != "" {
+				if _, exists := groups[group]; !exists {
+					groups[group] = new(pr.Principal)
+					groups[group].ID = group
+					groups[group].Name = item[2]
+					groups[group].Description = item[2]
+					groups[group].Type = "group"
+					groups[group].Connection = co
+					groups[group].Validate()
 				}
+				if groups[group].Exists {
+					if membersOnly {
+						groups[group].GetMembers()
+						groups[group].DeleteMembers()
+					} else {
+						groups[group].Delete()
+					}
+				}
+			} else {
+				zap.S().Errorw("The GroupID always needs to be provided")
 			}
 		}
-		utils.ManageSession("destroy")
+		co.Disconnect()
 	},
 }
 

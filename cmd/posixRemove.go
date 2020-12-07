@@ -17,6 +17,7 @@ var posixRemoveCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		utils.StartLogging()
+		zap.S().Warnw("DEPRECATED: All POSIX-related functionality will be dropped with the next release in preparation for SAS Viya 2021")
 		var folders string
 		var deleteFolders bool
 		var foldersFile, foldersReverse []map[string]string

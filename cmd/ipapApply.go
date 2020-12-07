@@ -6,7 +6,12 @@ package cmd
 import (
 	"strings"
 
-	"github.com/sassoftware/sas-viya-authorization-model/utils"
+	au "github.com/sassoftware/sas-viya-authorization-model/authorization"
+	co "github.com/sassoftware/sas-viya-authorization-model/connection"
+	fi "github.com/sassoftware/sas-viya-authorization-model/file"
+	fo "github.com/sassoftware/sas-viya-authorization-model/folder"
+	lo "github.com/sassoftware/sas-viya-authorization-model/log"
+	pr "github.com/sassoftware/sas-viya-authorization-model/principal"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -18,50 +23,83 @@ var ipapApplyCmd = &cobra.Command{
 	Long:  `Apply an Information Product Access Pattern definition [pattern] to a list of SAS Viya content folders [folders].`,
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		utils.StartLogging()
-		utils.ManageSession("create")
-		var pattern, folders string
-		var createGroups, createFolders bool
-		var patternFile, foldersFile, backlog []map[string]string
-		createGroups, _ = cmd.Flags().GetBool("create-groups")
-		createFolders, _ = cmd.Flags().GetBool("create-folders")
-		pattern = args[0]
-		folders = args[1]
-		zap.S().Infow("Applying IPAP to SAS Viya content folders", "pattern", pattern, "folders", folders, "create-groups", createGroups, "create-folders", createFolders)
-		patternFile = utils.ReadCSVFile(pattern, []string{"Pattern", "Principal", "GrantType", "Permissions"})
-		foldersFile = utils.ReadCSVFile(folders, []string{"Directory", "Pattern"})
-		backlog = utils.JoinMaps(foldersFile, patternFile, "Pattern", "inner")
-		for _, item := range backlog {
-			var group, uri string
-			group = item["Principal"]
-			if createGroups {
-				utils.ManageGroup("create", group, group, "")
+		new(lo.Log).New()
+		createGroups, _ := cmd.Flags().GetBool("create-groups")
+		createFolders, _ := cmd.Flags().GetBool("create-folders")
+		zap.S().Infow("Applying IPAP to SAS Viya content folders", "pattern", args[0], "folders", args[1], "create-groups", createGroups, "create-folders", createFolders)
+		co := new(co.Connection)
+		co.Connect()
+		fp := new(fi.File)
+		fp.Path = args[0]
+		fp.Schema = []string{"Pattern", "Principal", "GrantType", "Permissions"}
+		fp.Type = "csv"
+		fp.Read()
+		ff := new(fi.File)
+		ff.Path = args[1]
+		ff.Schema = []string{"Directory", "Pattern"}
+		ff.Type = "csv"
+		ff.Read()
+		patterns := make(map[string][][]string)
+		principals := make(map[string]*pr.Principal)
+		folders := make(map[string]*fo.Folder)
+		for _, pattern := range fp.Content.([][]string)[1:] {
+			patterns[pattern[0]] = append(patterns[pattern[0]], pattern[1:])
+		}
+		for _, folder := range ff.Content.([][]string)[1:] {
+			var pathElements []string = strings.Split(folder[0], "/")
+			if _, exists := folders[folder[0]]; !exists {
+				folders[folder[0]] = new(fo.Folder)
+				folders[folder[0]].Path = folder[0]
+				folders[folder[0]].Connection = co
+				folders[folder[0]].Validate()
 			}
-			if createFolders {
-				uri = utils.ManageFolder("create", item["Directory"])
-			} else {
-				uri = utils.ManageFolder("validate", item["Directory"])
+			if (folders[folder[0]].Parent == nil) && len(pathElements) >= 3 {
+				var parentPath string
+				for i := 1; i <= len(pathElements)-2; i++ {
+					parentPath = parentPath + "/" + pathElements[i]
+				}
+				if _, exists := folders[parentPath]; exists {
+					folders[folder[0]].Parent = folders[parentPath]
+				}
 			}
-			if uri != "" {
-				rule := utils.AuthorizationRule{
-					Principal:     group,
-					PrincipalType: "group",
-					Type:          "grant",
-					Enabled:       "true",
-					Permissions:   strings.Split(item["Permissions"], ","),
-					Description:   "Automatically enabled by goViyaAuth",
+			if createFolders && !folders[folder[0]].Exists {
+				folders[folder[0]].Create()
+			}
+			if _, exists := patterns[folder[1]]; exists {
+				for _, item := range patterns[folder[1]] {
+					var principal string = item[0]
+					if _, exists := principals[principal]; !exists {
+						principals[principal] = new(pr.Principal)
+						principals[principal].ID = principal
+						principals[principal].Name = principal
+						principals[principal].Type = "group"
+						principals[principal].Connection = co
+						principals[principal].Validate()
+					}
+					if createGroups && !principals[principal].Exists {
+						principals[principal].Create()
+					}
+					if folders[folder[0]].URI != "" {
+						au := new(au.Authorization)
+						au.Principal = principals[principal]
+						au.Type = "grant"
+						au.Enabled = "true"
+						au.Permissions = strings.Split(item[2], ",")
+						au.Description = "Automatically enabled by goViyaAuth"
+						if item[1] == "object" {
+							au.ObjectURI = folders[folder[0]].URI + "/**"
+						} else if item[1] == "conveyed" {
+							au.ContainerURI = folders[folder[0]].URI
+						}
+						au.Validate()
+						if au.IDs == nil {
+							au.Enable()
+						}
+					}
 				}
-				if item["GrantType"] == "object" {
-					rule.ObjectURI = uri + "/**"
-				} else if item["GrantType"] == "conveyed" {
-					rule.ContainerURI = uri
-				}
-				utils.AssertViyaPermissions(rule)
-			} else {
-				zap.S().Errorw("Folder does not exist and should not be created")
 			}
 		}
-		utils.ManageSession("destroy")
+		co.Disconnect()
 	},
 }
 
