@@ -72,9 +72,14 @@ var ipapApplyCmd = &cobra.Command{
 						principals[principal] = new(pr.Principal)
 						principals[principal].ID = principal
 						principals[principal].Name = principal
-						principals[principal].Type = "group"
 						principals[principal].Connection = co
-						principals[principal].Validate()
+						if principal == "authenticatedUsers" {
+							principals[principal].Type = principal
+							principals[principal].Exists = true
+						} else {
+							principals[principal].Type = "group"
+							principals[principal].Validate()
+						}
 					}
 					if createGroups && !principals[principal].Exists {
 						principals[principal].Create()

@@ -34,8 +34,17 @@ type Authorization struct {
 // Enable authorization rule
 func (a *Authorization) Enable() {
 	zap.S().Debugw("Enabling authorization rule", "containerUri", a.ContainerURI, "objectUri", a.ObjectURI)
-	permissions, _ := json.Marshal(a.Permissions)
-	a.Principal.Connection.Call("POST", "/authorization/rules", "application/vnd.sas.authorization.rule+json", "", nil, []byte(`{"permissions": `+string(permissions)+`, "principal": "`+a.Principal.ID+`", "principalType": "`+a.Principal.Type+`", "type": "`+a.Type+`", "enabled": "`+a.Enabled+`", "description": "`+a.Description+`", "containerUri": "`+a.ContainerURI+`", "objectUri": "`+a.ObjectURI+`"}`))
+	body, _ := json.Marshal(map[string]interface{}{
+		"permissions":   a.Permissions,
+		"principal":     a.Principal.ID,
+		"principalType": a.Principal.Type,
+		"type":          a.Type,
+		"enabled":       a.Enabled,
+		"description":   a.Description,
+		"containerUri":  a.ContainerURI,
+		"objectUri":     a.ObjectURI,
+	})
+	a.Principal.Connection.Call("POST", "/authorization/rules", "application/vnd.sas.authorization.rule+json", "", nil, body)
 }
 
 // Validate authorization rule

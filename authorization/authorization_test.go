@@ -16,7 +16,7 @@ import (
 
 func TestEnable(t *testing.T) {
 	var actBody []byte
-	expBody := []byte(`{"permissions": ["perm1","perm2"], "principal": "testgroup", "principalType": "group", "type": "grant", "enabled": "true", "description": "Automatically enabled by goViyaAuth", "containerUri": "", "objectUri": "testuri"}`)
+	expBody := []byte(`{"containerUri":"","description":"Automatically enabled by goViyaAuth","enabled":"true","objectUri":"testuri","permissions":["perm1","perm2"],"principal":"testgroup","principalType":"group","type":"grant"}`)
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusOK)
 		rw.Header().Set("Content-Type", "application/json")
@@ -89,21 +89,21 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			Name:          "AUContainer",
-			PrincipalType: "AuthentiatedUsers",
+			PrincipalType: "authentiatedUsers",
 			ContainerURI:  "testuri",
 			ObjectURI:     "",
 			EveryURI:      false,
 		},
 		{
 			Name:          "AUObject",
-			PrincipalType: "AuthentiatedUsers",
+			PrincipalType: "authentiatedUsers",
 			ContainerURI:  "",
 			ObjectURI:     "testuri",
 			EveryURI:      false,
 		},
 		{
 			Name:          "AUEvery",
-			PrincipalType: "AuthentiatedUsers",
+			PrincipalType: "authentiatedUsers",
 			ContainerURI:  "",
 			ObjectURI:     "",
 			EveryURI:      true,

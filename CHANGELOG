@@ -1,11 +1,24 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [2.4.0] - 2021-01-08
+### Added
+- Added a feature to automatically create path-based CASLIBs
+- Added the option to grant IPAP authorization to AuthenticatedUsers
+### Changed
+- Changed the expected schema of the list of CASLIBs
+### Deprecated
+### Removed
+- All POSIX-related functionality was removed in preparation for SAS Viya 2020.1
+- SAS Viya 3.x hardening functionality was removed in preparation for SAS Viya 2020.1
+### Fixed
+### Security
+- Addressed a CodeQL warning
 ## [2.3.1] - 2020-12-08
 ### Added
 ### Changed
 ### Deprecated
-- All POSIX-related functionality will be dropped with the next release in preparation for SAS Viya 2021.1
-- SAS Viya 3.x hardening functionality will be dropped with the next release in preparation for SAS Viya 2021.1
+- All POSIX-related functionality will be dropped with the next release in preparation for SAS Viya 2020.1
+- SAS Viya 3.x hardening functionality will be dropped with the next release in preparation for SAS Viya 2020.1
 ### Removed
 ### Fixed
 - General performance improvements

@@ -1,18 +1,16 @@
 # SAS Viya Authorization Model
 [![Apache License 2.0](https://img.shields.io/badge/license-Apache%202-blue)](http://www.apache.org/licenses/)
 ## Intent
-Defining, applying, and documenting repeatable, standardized authorization patterns for SAS Viya, CAS, and a POSIX File System.
+Defining, applying, and documenting repeatable, standardized authorization patterns for SAS Viya.
 ## Prerequisites
 This tool has been developed subject to the following prerequisites:
-- SAS Viya 3.4 or later Full Deployment
+- SAS Viya 2020.1 or later
 - Either:
   - [sas-admin CLI](https://support.sas.com/downloads/package.htm?pid=2133) installed and `Default` profile initialized (i.e. `sas-admin profile init`), OR
   - Environment Variables `GVA_USER`, `GVA_PW`, and `GVA_BASEURL` set
-- (Service) account with permissions to:
-  - create and modify SAS Viya & CAS objects (folders, files, global scope CASLIBs, etc.) and configure corresponding authorization (i.e. a member of the `SAS Administrators` superuser group)
-  - if required: create and modify POSIX File System objects and configure corresponding authorization (i.e. needs to be owner of those objects or possess elevated privileges)
+- (Service) account with permissions to create and modify SAS Viya & CAS objects (folders, files, global scope CASLIBs, etc.) and configure corresponding authorization (i.e. a member of the `SASAdministrators` superuser group)
 
-_Note: All functionality apart from the POSIX configuration can be run from a host that is not part of the SAS Viya environment but has HTTP(S) network connectivity to it. If using HTTPS, the TLS certificate chain (including the Root CA) need to be valid for the client._
+_Note: All functionality can be run from a host that is not part of the SAS Viya environment but has HTTP(S) network connectivity to it. If using HTTPS, the TLS certificate chain (including the Root CA) need to be valid for the client._
 ## Configuration
 ### Precedence order
 Configuration properties are evaluated in the following order of precedence:
@@ -51,15 +49,17 @@ A configuration file can be placed at `$HOME/.sas/gva.json` to define the follow
 |`baseurl`|n/a|SAS environment base URL (e.g. `sas-endpoint` in `~/.sas/config.json`)|
 |`validtls`|`true`|Validate the TLS connection is secure|
 ## Authorization Patterns
-SAS permissions are granted to authorization groups using SAS Viya custom groups of which corresponding Active Directory (or OpenLDAP) groups and/or users are nested members. This approach retains the authorization model in case of intermittent issues with LDAP synchronization and avoids bottlenecks with customer LDAP provisioning. The following figure depicts the nested relationship between example groups which maximises inheritance of authorization permissions in accordance with general security principles:
+Permissions are granted to SAS Viya custom groups of which Identity Provider (either LDAP or SCIM) groups and/or users are nested members. This approach retains the authorization model in case of intermittent issues with synchronization. The following figure depicts the nested relationship between example groups which maximises inheritance of authorization permissions in accordance with general security principles:
 
 ![Nested Group Example](img/001.png "Nested Group Example")
 
 Permission assignments to authorization groups include:
 - Platform Capabilities (Viya authorization rules & CAS role),
 - Information Products (Viya authorization rules),
-- Data Access (CAS access controls & File System permissions).
+- Data Access (CAS access controls).
 
+The defined authorization patterns form the main handover between designing and deploying a SAS Viya Authorization Model. Refer to the [samples](sample/) for guidance on the required pattern format to apply these.
+### Information Products
 The following figure depicts an example Information Product Access Pattern ("IPAP") to secure Information Products:
 
 ![Information Product Access Pattern](img/002.png "Information Product Access Pattern")
@@ -77,7 +77,7 @@ The following table describes the SAS Viya authorization permissions used throug
 |secure|Set permissions on an object(manipulate the object’s direct rules)|
 |add|Put an object into a container|
 |remove|Move an object out of a container|
-
+### Data Access
 The following figure depicts an example Data Access Pattern ("DAP") to secure data:
 
 ![Data Access Pattern](img/003.png "Data Access Pattern")
@@ -101,8 +101,6 @@ The following table describes the SAS CAS access controls used throughout the DA
 |AlterTable|Change the attributes or structure of a table|
 |AlterCASLIB|Change the properties of a CASLIB|
 |ManageAccess|Set access controls|
-
-The defined authorization patterns form the main handover between designing and deploying a SAS Viya Authorization Model. Refer to the [samples](sample/) for guidance on the required pattern format to apply these.
 ## Contributing
 We welcome your contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to submit contributions to this project.
 ## License

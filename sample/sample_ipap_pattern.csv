@@ -1,5 +1,6 @@
 ﻿Pattern,Principal,GrantType,Permissions
-ipap_lob,per001,object,read
-ipap_lob,per007,object,"read,update,delete,secure,add,remove"
-ipap_lob,per001,conveyed,read
-ipap_lob,per003,conveyed,"read,update,delete"
+ipap1,authenticatedUsers,object,read
+ipap2,authenticatedUsers,object,read
+ipap2,per007,object,"read,update,delete,secure,add,remove"
+ipap2,per001,conveyed,read
+ipap2,per003,conveyed,"read,update,delete"

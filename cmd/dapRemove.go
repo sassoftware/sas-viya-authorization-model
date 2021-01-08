@@ -34,7 +34,7 @@ var dapRemoveCmd = &cobra.Command{
 		fp.Read()
 		fc := new(fi.File)
 		fc.Path = args[1]
-		fc.Schema = []string{"CASLIB", "Pattern"}
+		fc.Schema = []string{"CASLIB", "Type", "Path", "Pattern"}
 		fc.Type = "csv"
 		fc.Read()
 		patterns := make(map[string][][]string)
@@ -43,21 +43,30 @@ var dapRemoveCmd = &cobra.Command{
 			patterns[pattern[0]] = append(patterns[pattern[0]], pattern[1:])
 		}
 		for _, caslib := range fc.Content.([][]string)[1:] {
-			cas := new(ca.CASLIB)
+			cas := new(ca.LIB)
 			cas.Connection = co
 			cas.Name = caslib[0]
+			cas.Description = caslib[0]
+			cas.Type = caslib[1]
+			cas.Path = caslib[2]
+			cas.Scope = "global"
 			cas.Validate()
 			if cas.Exists {
-				if _, exists := patterns[caslib[1]]; exists {
-					for _, pattern := range patterns[caslib[1]] {
+				if _, exists := patterns[caslib[3]]; exists {
+					for _, pattern := range patterns[caslib[3]] {
 						var principal string = pattern[0]
 						if _, exists := principals[principal]; !exists {
 							principals[principal] = new(pr.Principal)
-							principals[principal].ID = principal
 							principals[principal].Name = principal
-							principals[principal].Type = "group"
 							principals[principal].Connection = co
-							principals[principal].Validate()
+							principals[principal].Type = "group"
+							if principal == "authenticatedUsers" {
+								principals[principal].ID = "*"
+								principals[principal].Exists = true
+							} else {
+								principals[principal].ID = principal
+								principals[principal].Validate()
+							}
 						}
 						if deleteGroups && principals[principal].Exists {
 							principals[principal].Delete()
@@ -71,7 +80,7 @@ var dapRemoveCmd = &cobra.Command{
 					}
 					cas.Remove()
 				} else {
-					zap.S().Errorw("Pattern is not defined", "CASLIB", caslib[0], "pattern", caslib[1])
+					zap.S().Errorw("Pattern is not defined", "CASLIB", caslib[0], "pattern", caslib[3])
 				}
 			} else {
 				zap.S().Errorw("CASLIB does not exist", "CASLIB", caslib[0])

@@ -24,7 +24,7 @@ func TestValidate(t *testing.T) {
 	co.BaseURL = server.URL
 	co.AccessToken = "testaccesstoken"
 	co.Connected = true
-	cas := new(CASLIB)
+	cas := new(LIB)
 	cas.Connection = co
 	cas.Name = "testcaslib"
 	cas.Validate()
@@ -47,7 +47,7 @@ func TestLock(t *testing.T) {
 	co.CASServer = "default"
 	co.CASSession = "testsession"
 	co.Connected = true
-	cas := new(CASLIB)
+	cas := new(LIB)
 	cas.Connection = co
 	cas.Name = "testcaslib"
 	cas.lock()
@@ -67,7 +67,7 @@ func TestStartTransaction(t *testing.T) {
 	co.CASServer = "default"
 	co.CASSession = "testsession"
 	co.Connected = true
-	cas := new(CASLIB)
+	cas := new(LIB)
 	cas.Connection = co
 	cas.startTransaction()
 }
@@ -86,7 +86,7 @@ func TestCommitTransaction(t *testing.T) {
 	co.CASServer = "default"
 	co.CASSession = "testsession"
 	co.Connected = true
-	cas := new(CASLIB)
+	cas := new(LIB)
 	cas.Connection = co
 	cas.commitTransaction()
 }
@@ -130,7 +130,7 @@ func TestApply(t *testing.T) {
 		},
 		TableFilter: "testfilter",
 	}
-	cas := new(CASLIB)
+	cas := new(LIB)
 	cas.Connection = co
 	cas.Name = "testcaslib"
 	cas.ACL = append(cas.ACL, ac)
@@ -176,9 +176,42 @@ func TestRemove(t *testing.T) {
 		},
 		TableFilter: "testfilter",
 	}
-	cas := new(CASLIB)
+	cas := new(LIB)
 	cas.Connection = co
 	cas.Name = "testcaslib"
 	cas.ACL = append(cas.ACL, ac)
 	cas.Remove()
+}
+
+func TestCreate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		defer req.Body.Close()
+		if req.URL.String() == "/casManagement/servers/default/caslibs" {
+			body, err := ioutil.ReadAll(req.Body)
+			if err != nil {
+				t.Errorf("Failed reading request body: %s.", err)
+			}
+			expected := `{"description":"testdescription","hidden":false,"name":"testcaslib","path":"/test/path","scope":"global","transient":false,"type":"PATH"}`
+			if string(body) != expected {
+				t.Errorf("res.Body = %q; want %q", string(body), expected)
+			}
+		} else {
+			t.Errorf("Wrong URL: %s.", req.URL.String())
+		}
+	}))
+	defer server.Close()
+	co := new(co.Connection)
+	co.BaseURL = server.URL
+	co.AccessToken = "testaccesstoken"
+	co.CASServer = "default"
+	co.CASSession = "testsession"
+	co.Connected = true
+	cas := new(LIB)
+	cas.Connection = co
+	cas.Name = "testcaslib"
+	cas.Description = "testdescription"
+	cas.Path = "/test/path"
+	cas.Type = "PATH"
+	cas.Scope = "global"
+	cas.Create()
 }

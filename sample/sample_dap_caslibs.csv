@@ -1,2 +1,3 @@
-﻿CASLIB,Pattern
-Samples,dap_lob
+﻿CASLIB,Type,Path,Pattern
+testcas1,Path,/cas/data/caslibs/testcas1/,dap1
+testcas2,Path,/cas/data/caslibs/testcas2/,dap2

@@ -4,8 +4,6 @@
 /SASDrive/**,per007,read
 /SASEnvironmentManager/,per006,read
 /SASEnvironmentManager/,per007,read
-/SASEnvironmentManager/dashboard,per006,read
-/SASEnvironmentManager/dashboard,per007,read
 /SASEnvironmentManager/data,per007,read
 /SASDataExplorer/**,per007,"read,update,delete,add,remove,create"
 /SASVisualAnalytics/**,per001,read

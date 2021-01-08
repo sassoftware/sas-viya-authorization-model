@@ -3,6 +3,7 @@
 	"casserver": "cas-shared-default",
 	"logfile": "gva.log",
 	"loglevel": "INFO",
-	"protocol": "https://",
-	"responselimit": "1000"
+	"responselimit": "1000",
+	"baseurl": "https://viya.sas",
+	"validtls": "true"
 }

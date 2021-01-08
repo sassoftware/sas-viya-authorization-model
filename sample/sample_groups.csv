@@ -1,4 +1,5 @@
 ParentGroupID,GroupID,GroupName,UserID
-SASAdministrators,per007,Persona: Administrator,sas
-per007,per006,Persona: Data Engineer,
+SASAdministrators,per007,Persona: Administrator,geladm
+,per006,Persona: Data Engineer,
+,per003,Persona: Data Scientist,
 ,per001,,

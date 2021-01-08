@@ -12,12 +12,16 @@ import (
 	"go.uber.org/zap"
 )
 
-// CASLIB object
-type CASLIB struct {
-	Name       string
-	ACL        []AC
-	Exists     bool
-	Connection *co.Connection
+// LIB object
+type LIB struct {
+	Name        string
+	Description string
+	Path        string
+	Scope       string
+	Type        string
+	ACL         []AC
+	Exists      bool
+	Connection  *co.Connection
 }
 
 // AC defines a CAS Access Control
@@ -29,8 +33,23 @@ type AC struct {
 	TableFilter string
 }
 
+// Create a global scope PATH or DNFS type CASLIB
+func (cas *LIB) Create() {
+	zap.S().Infow("Creating CASLIB", "name", cas.Name)
+	body, _ := json.Marshal(map[string]interface{}{
+		"description": cas.Description,
+		"name":        cas.Name,
+		"path":        cas.Path,
+		"type":        cas.Type,
+		"scope":       cas.Scope,
+		"hidden":      false,
+		"transient":   false,
+	})
+	cas.Connection.Call("POST", "/casManagement/servers/"+cas.Connection.CASServer+"/caslibs", "application/vnd.sas.cas.caslib+json", "application/vnd.sas.cas.caslib+json", nil, body)
+}
+
 // Validate whether a CASLIB exists
-func (cas *CASLIB) Validate() {
+func (cas *LIB) Validate() {
 	zap.S().Debugw("Validating CASLIB", "name", cas.Name)
 	search, _ := cas.Connection.Call("GET", "/casManagement/servers/"+cas.Connection.CASServer+"/caslibs", "", "", [][]string{
 		0: {
@@ -60,7 +79,7 @@ func (cas *CASLIB) Validate() {
 }
 
 // lock a CASLIB for editing
-func (cas *CASLIB) lock() {
+func (cas *LIB) lock() {
 	zap.S().Debugw("Locking CASLIB", "name", cas.Name)
 	cas.Connection.Call("POST", "/casAccessManagement/servers/"+cas.Connection.CASServer+"/caslibControls/"+cas.Name+"/lock", "", "", [][]string{
 		0: {
@@ -71,7 +90,7 @@ func (cas *CASLIB) lock() {
 }
 
 // startTransaction starts a CAS access control transaction
-func (cas *CASLIB) startTransaction() {
+func (cas *LIB) startTransaction() {
 	zap.S().Debugw("Starting CAS access control transaction")
 	cas.Connection.Call("POST", "/casManagement/servers/"+cas.Connection.CASServer+"/sessions/"+cas.Connection.CASSession, "", "", [][]string{
 		0: {
@@ -82,7 +101,7 @@ func (cas *CASLIB) startTransaction() {
 }
 
 // commitTransaction commits a CAS access control transaction
-func (cas *CASLIB) commitTransaction() {
+func (cas *LIB) commitTransaction() {
 	zap.S().Debugw("Committing CAS access control transaction")
 	cas.Connection.Call("POST", "/casManagement/servers/"+cas.Connection.CASServer+"/sessions/"+cas.Connection.CASSession, "", "", [][]string{
 		0: {
@@ -93,7 +112,7 @@ func (cas *CASLIB) commitTransaction() {
 }
 
 // Apply a list of direct CAS Access Controls to a CASLIB while replacing all existing ACs
-func (cas *CASLIB) Apply() {
+func (cas *LIB) Apply() {
 	zap.S().Infow("Applying direct CAS access controls and replacing all existing", "CASLIB", cas.Name)
 	cas.lock()
 	cas.startTransaction()
@@ -125,7 +144,7 @@ func (cas *CASLIB) Apply() {
 }
 
 // Remove a list of direct CAS Access Controls from a CASLIB. An empty ACL will remove all existing controls
-func (cas *CASLIB) Remove() {
+func (cas *LIB) Remove() {
 	zap.S().Infow("Removing specified existing direct CAS Access Controls", "CASLIB", cas.Name)
 	cas.lock()
 	cas.startTransaction()
