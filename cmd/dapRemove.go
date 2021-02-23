@@ -34,26 +34,31 @@ var dapRemoveCmd = &cobra.Command{
 		fp.Read()
 		fc := new(fi.File)
 		fc.Path = args[1]
-		fc.Schema = []string{"CASLIB", "Type", "Path", "Pattern"}
+		fc.Schema = []string{"CASLIB", "Description", "Type", "Path", "Pattern"}
 		fc.Type = "csv"
 		fc.Read()
 		patterns := make(map[string][][]string)
 		principals := make(map[string]*pr.Principal)
+		caslibs := make(map[string]*ca.LIB)
 		for _, pattern := range fp.Content.([][]string)[1:] {
 			patterns[pattern[0]] = append(patterns[pattern[0]], pattern[1:])
 		}
 		for _, caslib := range fc.Content.([][]string)[1:] {
-			cas := new(ca.LIB)
-			cas.Connection = co
-			cas.Name = caslib[0]
-			cas.Description = caslib[0]
-			cas.Type = caslib[1]
-			cas.Path = caslib[2]
-			cas.Scope = "global"
-			cas.Validate()
-			if cas.Exists {
-				if _, exists := patterns[caslib[3]]; exists {
-					for _, pattern := range patterns[caslib[3]] {
+			if _, exists := caslibs[caslib[0]]; !exists {
+				caslibs[caslib[0]] = new(ca.LIB)
+				caslibs[caslib[0]].Connection = co
+				caslibs[caslib[0]].Name = caslib[0]
+				caslibs[caslib[0]].Description = caslib[1]
+				caslibs[caslib[0]].Type = caslib[2]
+				caslibs[caslib[0]].Path = caslib[3]
+				caslibs[caslib[0]].Scope = "global"
+				caslibs[caslib[0]].Validate()
+			}
+			if !caslibs[caslib[0]].Exists {
+				zap.S().Errorw("CASLIB does not exist", "CASLIB", caslib[0])
+			} else {
+				if _, exists := patterns[caslib[4]]; exists {
+					for _, pattern := range patterns[caslib[4]] {
 						var principal string = pattern[0]
 						if _, exists := principals[principal]; !exists {
 							principals[principal] = new(pr.Principal)
@@ -76,14 +81,12 @@ var dapRemoveCmd = &cobra.Command{
 							Principal:   principals[principal],
 							Permissions: strings.Split(pattern[1], ","),
 						}
-						cas.ACL = append(cas.ACL, ac)
+						caslibs[caslib[0]].ACL = append(caslibs[caslib[0]].ACL, ac)
 					}
-					cas.Remove()
+					caslibs[caslib[0]].Remove()
 				} else {
-					zap.S().Errorw("Pattern is not defined", "CASLIB", caslib[0], "pattern", caslib[3])
+					zap.S().Errorw("Pattern is not defined", "CASLIB", caslib[0], "pattern", caslib[4])
 				}
-			} else {
-				zap.S().Errorw("CASLIB does not exist", "CASLIB", caslib[0])
 			}
 		}
 		co.Disconnect()

@@ -21,6 +21,24 @@ func TestCreate(t *testing.T) {
 	co.BaseURL = server.URL
 	co.AccessToken = "testaccesstoken"
 	co.Connected = true
+	p := new(Principal)
+	p.Connection = co
+	p.ID = "testgroup"
+	p.Name = "Test Group"
+	p.Type = "group"
+	p.Create()
+}
+
+func TestNest(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusOK)
+		rw.Header().Set("Content-Type", "application/json")
+	}))
+	defer server.Close()
+	co := new(co.Connection)
+	co.BaseURL = server.URL
+	co.AccessToken = "testaccesstoken"
+	co.Connected = true
 	p1 := new(Principal)
 	p1.ID = "parent1"
 	p2 := new(Principal)
@@ -32,11 +50,12 @@ func TestCreate(t *testing.T) {
 	p.Type = "group"
 	p.Parents = append(p.Parents, p1)
 	p.Parents = append(p.Parents, p2)
-	p.Create()
+	p.Exists = true
+	p.Nest()
 	p.ID = "testuser"
 	p.Name = "Test User"
 	p.Type = "user"
-	p.Create()
+	p.Nest()
 }
 
 func TestValidate(t *testing.T) {

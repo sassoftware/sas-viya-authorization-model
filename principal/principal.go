@@ -22,7 +22,7 @@ type Principal struct {
 	Connection  *co.Connection
 }
 
-// Create a SAS Viya principal if it does not already exist and nest if required
+// Create a SAS Viya principal if it does not already exist
 func (p *Principal) Create() {
 	if !p.Exists && p.Type == "group" {
 		zap.S().Infow("Creating custom group", "id", p.ID, "name", p.Name)
@@ -36,18 +36,24 @@ func (p *Principal) Create() {
 			p.Name = p.ID
 		}
 		p.Connection.Call("POST", "/identities/groups", "application/vnd.sas.identity.group+json", "", nil, []byte(`{"id": "`+p.ID+`", "name": "`+p.Name+`", "description": "`+p.Description+`"}`))
-		if p.Parents != nil {
-			for _, parent := range p.Parents {
-				zap.S().Infow("Nesting custom group", "id", p.ID, "parentid", parent.ID)
-				p.Connection.Call("PUT", "/identities/groups/"+parent.ID+"/groupMembers/"+p.ID, "", "", nil, nil)
-			}
-		}
 		p.Exists = true
+	}
+}
+
+// Nest a SAS Viya principal if it has parents
+func (p *Principal) Nest() {
+	if p.Exists && p.Type == "group" && p.Parents != nil {
+		for _, parent := range p.Parents {
+			zap.S().Infow("Nesting custom group", "id", p.ID, "parentid", parent.ID)
+			p.Connection.Call("PUT", "/identities/groups/"+parent.ID+"/groupMembers/"+p.ID, "", "", nil, nil)
+		}
+		p.Parents = nil
 	} else if p.Type == "user" && p.Parents != nil {
 		for _, parent := range p.Parents {
 			zap.S().Infow("Nesting user", "groupID", parent.ID, "userID", p.ID)
 			p.Connection.Call("PUT", "/identities/groups/"+parent.ID+"/userMembers/"+p.ID, "", "", nil, nil)
 		}
+		p.Parents = nil
 	}
 }
 

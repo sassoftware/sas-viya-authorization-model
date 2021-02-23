@@ -46,6 +46,7 @@ var ipapRemoveCmd = &cobra.Command{
 			patterns[pattern[0]] = append(patterns[pattern[0]], pattern[1:])
 		}
 		for _, folder := range ff.Content.([][]string)[1:] {
+			folder[0] = strings.TrimSuffix(folder[0], "/")
 			var pathElements []string = strings.Split(folder[0], "/")
 			if _, exists := folders[folder[0]]; !exists {
 				folders[folder[0]] = new(fo.Folder)

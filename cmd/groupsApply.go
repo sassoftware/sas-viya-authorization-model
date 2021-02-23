@@ -55,7 +55,7 @@ var groupsApplyCmd = &cobra.Command{
 					}
 					if groups[parent].Exists {
 						groups[group].Parents = append(groups[group].Parents, groups[parent])
-
+						groups[group].Nest()
 					} else {
 						zap.S().Errorw("The ParentGroupID does not exist")
 					}
@@ -72,7 +72,7 @@ var groupsApplyCmd = &cobra.Command{
 					}
 					users[member].Parents = append(users[member].Parents, groups[group])
 					groups[group].Members = append(groups[group].Members, users[member])
-					users[member].Create()
+					users[member].Nest()
 				}
 			} else {
 				zap.S().Errorw("The GroupID always needs to be provided")

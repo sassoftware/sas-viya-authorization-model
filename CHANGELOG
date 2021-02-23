@@ -1,5 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [2.4.1] - 2021-02-23
+### Added
+- Added option to provide a CASLIB description
+- Added option to apply or remove platform capabilities from AuthenticatedUsers
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Fixed an issue preventing groups from nesting under multiple parents
+- Fixed an issue when using trailing slashes for folder paths
+- Fixed an issue where multiple DAP applied to a single CASLIB overwrote eachother
+### Security
 ## [2.4.0] - 2021-01-08
 ### Added
 - Added a feature to automatically create path-based CASLIBs
