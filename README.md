@@ -32,7 +32,7 @@ The following environment variables are available for configuration:
 |`GVA_RESPONSELIMIT`|`1000`|[Limit](https://developer.sas.com/apis/rest/#pagination) of REST items returned|
 |`GVA_BASEURL`|n/a|SAS environment base URL (e.g. `sas-endpoint` in `~/.sas/config.json`)|
 |`GVA_VALIDTLS`|`true`|Validate the TLS connection is secure|
-|`GVA_PROFILE`|`Default`|Profile to use from |
+|`GVA_PROFILE`|`Default`|Profile to use from `~/.sas/config.json`|
 |`GVA_USER`|n/a|SAS Administrator account username|
 |`GVA_PW`|n/a|SAS Administrator account password|
 |`GVA_CLIENTID`|`sas.cli`|OAuth 2.0 Client ID registered with SAS Logon Manager|
