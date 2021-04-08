@@ -27,6 +27,7 @@ func TestGetBaseURL1(t *testing.T) {
 
 func TestGetBaseURL2(t *testing.T) {
 	viper.Set("home", "test")
+	viper.Set("profile", "Default")
 	write := []byte(`{"Default": {"ansi-colors-enabled": "true", "oauth-client-id": "sas.cli", "output": "json", "sas-endpoint": "http://1.1.1.1"}}`)
 	var expected string = "http://1.1.1.1"
 	os.MkdirAll("test/.sas/", os.ModePerm)
@@ -38,6 +39,24 @@ func TestGetBaseURL2(t *testing.T) {
 		t.Errorf("Expected: %v, Returned: %v.", expected, returned)
 	}
 	os.RemoveAll("test")
+	viper.Set("home", "")
+}
+
+func TestGetBaseURL3(t *testing.T) {
+	viper.Set("home", "test")
+	viper.Set("profile", "prod")
+	write := []byte(`{"Default": {"ansi-colors-enabled": "true", "oauth-client-id": "sas.cli", "output": "json", "sas-endpoint": "http://1.1.1.1"}, "prod": {"ansi-colors-enabled": "true", "oauth-client-id": "sas.cli", "output": "json", "sas-endpoint": "http://2.2.2.2"}}`)
+	var expected string = "http://2.2.2.2"
+	os.MkdirAll("test/.sas/", os.ModePerm)
+	ioutil.WriteFile("test/.sas/config.json", write, 0644)
+	c := new(Connection)
+	c.getBaseURL()
+	var returned string = c.BaseURL
+	if returned != expected {
+		t.Errorf("Expected: %v, Returned: %v.", expected, returned)
+	}
+	os.RemoveAll("test")
+	viper.Set("profile", "Default")
 	viper.Set("home", "")
 }
 
@@ -88,6 +107,7 @@ func TestGetAccessToken1(t *testing.T) {
 
 func TestGetAccessToken2(t *testing.T) {
 	viper.Set("home", "test")
+	viper.Set("profile", "Default")
 	write := []byte(`{"Default": {"access-token": "testaccesstoken", "expiry": "9999-12-31T07:05:41Z", "refresh-token": "testrefreshtoken"}}`)
 	var expected string = "testaccesstoken"
 	os.MkdirAll("test/.sas/", os.ModePerm)
@@ -100,6 +120,24 @@ func TestGetAccessToken2(t *testing.T) {
 	}
 	os.RemoveAll("test")
 	viper.Set("home", "")
+}
+
+func TestGetAccessToken3(t *testing.T) {
+	viper.Set("home", "test")
+	viper.Set("profile", "prod")
+	write := []byte(`{"Default": {"access-token": "testaccesstoken", "expiry": "9999-12-31T07:05:41Z", "refresh-token": "testrefreshtoken"},"prod": {"access-token": "prodaccesstoken", "expiry": "9999-12-31T07:05:41Z", "refresh-token": "testrefreshtoken"}}`)
+	var expected string = "prodaccesstoken"
+	os.MkdirAll("test/.sas/", os.ModePerm)
+	ioutil.WriteFile("test/.sas/credentials.json", write, 0644)
+	c := new(Connection)
+	c.getAccessToken()
+	var returned string = c.AccessToken
+	if returned != expected {
+		t.Errorf("Expected: %v, Returned: %v.", expected, returned)
+	}
+	os.RemoveAll("test")
+	viper.Set("home", "")
+	viper.Set("profile", "Default")
 }
 
 func TestGetCASSession(t *testing.T) {

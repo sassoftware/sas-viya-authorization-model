@@ -14,6 +14,7 @@ import (
 )
 
 var cfgFile string
+var profile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -30,7 +31,9 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.sas/gva.json)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file location (default is $HOME/.sas/gva.json)")
+	rootCmd.PersistentFlags().StringVar(&profile, "profile", "", "sas-viya CLI profile (default is Default)")
+	rootCmd.PersistentFlags().Bool("insecure", false, "allow TLS connections without validating the server certificates (default is false)")
 }
 
 // initConfig reads in config file and ENV variables if set, otherwise reverts to defaults.
@@ -38,6 +41,7 @@ func initConfig() {
 	home, err := homedir.Dir()
 	t := time.Now()
 	viper.Set("home", home)
+	insecure, _ := rootCmd.PersistentFlags().GetBool("insecure")
 	if err != nil {
 		zap.S().Fatalw("Error finding the user's home directory", "error", err)
 	}
@@ -56,11 +60,16 @@ func initConfig() {
 	viper.SetDefault("loglevel", "INFO")
 	viper.SetDefault("responselimit", "1000")
 	viper.SetDefault("baseurl", "")
-	viper.SetDefault("validtls", "true")
+	viper.SetDefault("validtls", !insecure)
 	viper.SetDefault("user", "")
 	viper.SetDefault("pw", "")
 	viper.SetDefault("clientid", "sas.cli")
 	viper.SetDefault("clientsecret", "")
+	if profile != "" {
+		viper.SetDefault("profile", profile)
+	} else {
+		viper.SetDefault("profile", "Default")
+	}
 
 	if err := viper.ReadInConfig(); err == nil {
 		zap.S().Infow("Using provided config file", "ConfigFileUsed", viper.ConfigFileUsed())

@@ -6,7 +6,7 @@ Defining, applying, and documenting repeatable, standardized authorization patte
 This tool has been developed subject to the following prerequisites:
 - SAS Viya 2020.1 or later
 - Either:
-  - [sas-admin CLI](https://support.sas.com/downloads/package.htm?pid=2133) installed and `Default` profile initialized (i.e. `sas-admin profile init`), OR
+  - [sas-viya CLI](https://support.sas.com/downloads/package.htm?pid=2512) installed and one or more profiles initialized (i.e. `sas-viya profile init`), OR
   - Environment Variables `GVA_USER`, `GVA_PW`, and `GVA_BASEURL` set
 - (Service) account with permissions to create and modify SAS Viya & CAS objects (folders, files, global scope CASLIBs, etc.) and configure corresponding authorization (i.e. a member of the `SASAdministrators` superuser group)
 
@@ -32,6 +32,7 @@ The following environment variables are available for configuration:
 |`GVA_RESPONSELIMIT`|`1000`|[Limit](https://developer.sas.com/apis/rest/#pagination) of REST items returned|
 |`GVA_BASEURL`|n/a|SAS environment base URL (e.g. `sas-endpoint` in `~/.sas/config.json`)|
 |`GVA_VALIDTLS`|`true`|Validate the TLS connection is secure|
+|`GVA_PROFILE`|`Default`|Profile to use from |
 |`GVA_USER`|n/a|SAS Administrator account username|
 |`GVA_PW`|n/a|SAS Administrator account password|
 |`GVA_CLIENTID`|`sas.cli`|OAuth 2.0 Client ID registered with SAS Logon Manager|

@@ -85,11 +85,11 @@ func (c *Connection) Call(method, path, contenttype, accepttype string, query []
 	status = resp.StatusCode
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
-		zap.S().Warnw("Issue unmarshalling JSON response", "error", err)
+		zap.S().Debugw("Issue unmarshalling JSON response", "error", err)
 	}
 	defer resp.Body.Close()
 	if (400 <= resp.StatusCode) && (resp.StatusCode <= 599) {
-		zap.S().Warnw("Error code contained in REST response", "status", resp.StatusCode, "response", response)
+		zap.S().Debugw("Error code contained in REST response", "status", resp.StatusCode, "response", response)
 	} else {
 		zap.S().Debugw("Successful REST response", "status", resp.StatusCode, "response", response)
 	}
@@ -125,9 +125,9 @@ func (c *Connection) getBaseURL() {
 		f.Content = conf
 		f.Type = "json"
 		f.Read()
-		c.BaseURL = f.Content.(map[string]interface{})["Default"].(map[string]interface{})["sas-endpoint"].(string)
+		c.BaseURL = f.Content.(map[string]interface{})[viper.GetString("profile")].(map[string]interface{})["sas-endpoint"].(string)
 	}
-	zap.S().Debugw("Retrieved SAS Viya environment base URL", "baseurl", c.BaseURL)
+	zap.S().Debugw("Retrieved SAS Viya environment base URL", "profile", viper.GetString("profile"), "baseurl", c.BaseURL)
 }
 
 // getAccessToken either obtains a new or returns the user's existing OAuth Access Token
@@ -170,11 +170,11 @@ func (c *Connection) getAccessToken() {
 		f.Content = cred
 		f.Type = "json"
 		f.Read()
-		expiry, _ := time.Parse(time.RFC3339, f.Content.(map[string]interface{})["Default"].(map[string]interface{})["expiry"].(string))
+		expiry, _ := time.Parse(time.RFC3339, f.Content.(map[string]interface{})[viper.GetString("profile")].(map[string]interface{})["expiry"].(string))
 		if time.Now().After(expiry) {
-			zap.S().Fatalw("OAuth Access Token expired. Please refresh using the 'sas-admin auth login' command", "expiry", expiry)
+			zap.S().Fatalw("OAuth Access Token expired. Please refresh using the 'sas-viya auth login' command", "expiry", expiry)
 		}
-		c.AccessToken = f.Content.(map[string]interface{})["Default"].(map[string]interface{})["access-token"].(string)
+		c.AccessToken = f.Content.(map[string]interface{})[viper.GetString("profile")].(map[string]interface{})["access-token"].(string)
 	}
 	zap.S().Debugw("Retrieved OAuth Access Token")
 }

@@ -26,6 +26,7 @@ var ipapApplyCmd = &cobra.Command{
 		new(lo.Log).New()
 		createGroups, _ := cmd.Flags().GetBool("create-groups")
 		createFolders, _ := cmd.Flags().GetBool("create-folders")
+		overwritePattern, _ := cmd.Flags().GetBool("overwrite-pattern")
 		zap.S().Infow("Applying IPAP to SAS Viya content folders", "pattern", args[0], "folders", args[1], "create-groups", createGroups, "create-folders", createFolders)
 		co := new(co.Connection)
 		co.Connect()
@@ -98,6 +99,9 @@ var ipapApplyCmd = &cobra.Command{
 							au.ContainerURI = folders[folder[0]].URI
 						}
 						au.Validate()
+						if au.IDs != nil && overwritePattern {
+							au.Delete()
+						}
 						if au.IDs == nil {
 							au.Enable()
 						}
@@ -113,4 +117,5 @@ func init() {
 	ipapCmd.AddCommand(ipapApplyCmd)
 	ipapApplyCmd.Flags().BoolP("create-groups", "g", false, "create missing custom groups")
 	ipapApplyCmd.Flags().BoolP("create-folders", "f", false, "create missing SAS Viya content folders")
+	ipapApplyCmd.Flags().BoolP("overwrite-pattern", "o", false, "overwrite an existing IPAP")
 }
