@@ -1,4 +1,4 @@
-// Copyright © 2020, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
+// Copyright © 2021, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
 package principal
@@ -156,5 +156,35 @@ func TestDeleteMembers(t *testing.T) {
 	p.DeleteMembers()
 	if p.Members != nil {
 		t.Errorf("Expected: %v, Returned: %v.", nil, p.Members)
+	}
+}
+
+func TestDeleteMember(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusOK)
+		rw.Header().Set("Content-Type", "application/json")
+	}))
+	defer server.Close()
+	co := new(co.Connection)
+	co.BaseURL = server.URL
+	co.AccessToken = "testaccesstoken"
+	co.Connected = true
+	p := new(Principal)
+	p.Connection = co
+	p.ID = "testgroup"
+	p.Name = "Test Group"
+	p.Type = "group"
+	p.Exists = true
+	m := new(Principal)
+	m.ID = "testmember1"
+	m.Type = "group"
+	p.Members = append(p.Members, m)
+	m = new(Principal)
+	m.ID = "testmember2"
+	m.Type = "user"
+	p.Members = append(p.Members, m)
+	p.DeleteMember("user", "testmember2")
+	if len(p.Members) != 1 {
+		t.Errorf("Expected: %v, Returned: %v.", 1, len(p.Members))
 	}
 }

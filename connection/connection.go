@@ -1,4 +1,4 @@
-// Copyright © 2020, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
+// Copyright © 2021, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
 package connection
@@ -102,7 +102,7 @@ func (c *Connection) Disconnect() {
 	if c.Connected {
 		c.destroyCASSession()
 		c.Connected = false
-		zap.S().Debugw("Disconnected from SAS Viya", "Count", c.Count)
+		zap.S().Debugw("Disconnected from SAS Viya", "Total API Calls", c.Count)
 	}
 }
 

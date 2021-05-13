@@ -1,4 +1,4 @@
-// Copyright © 2020, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
+// Copyright © 2021, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
 package principal
@@ -135,4 +135,23 @@ func (p *Principal) DeleteMembers() {
 		}
 		p.Members = nil
 	}
+}
+
+// DeleteMember of a SAS Viya principal
+func (p *Principal) DeleteMember(Type string, ID string) {
+	var tmp []*Principal
+	if Type == "group" {
+		zap.S().Infow("Deleting group membership", "id", p.ID, "memberID", ID)
+		p.Connection.Call("DELETE", "/identities/groups/"+p.ID+"/groupMembers/"+ID, "", "", nil, nil)
+	} else if Type == "user" {
+		zap.S().Infow("Deleting group membership", "id", p.ID, "memberID", ID)
+		p.Connection.Call("DELETE", "/identities/groups/"+p.ID+"/userMembers/"+ID, "", "", nil, nil)
+	}
+	for _, member := range p.Members {
+		if member.ID != ID {
+			tmp = append(tmp, member)
+		}
+	}
+	p.Members = nil
+	p.Members = tmp
 }
