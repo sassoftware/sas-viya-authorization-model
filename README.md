@@ -87,21 +87,23 @@ CASLIB-level permissions apply to the overall CASLIB, while table-level permissi
 
 The following table describes the SAS CAS access controls used throughout the DAP pattern definitions.
 
+_Note: The camel case permissions are case-sensitive._
+
 |Permission|Description|
 |---|---|
-|ReadInfo|View and traverse objects|
-|Select|Read data values|
-|LimitedPromote|Promote from source in the same CASLIB|
-|Promote|Promote from any CASLIB|
-|CreateTable|Save (persist) a table|
-|DropTable|Remove a table from global scope|
-|DeleteSource|Delete a physical source table|
-|Insert|Add rows|
-|Update|Change data values|
-|Delete|Delete rows|
-|AlterTable|Change the attributes or structure of a table|
-|AlterCASLIB|Change the properties of a CASLIB|
-|ManageAccess|Set access controls|
+|readInfo|View and traverse objects|
+|select|Read data values|
+|limitedPromote|Promote from source in the same CASLIB|
+|promote|Promote from any CASLIB|
+|createTable|Save (persist) a table|
+|dropTable|Remove a table from global scope|
+|deleteSource|Delete a physical source table|
+|insert|Add rows|
+|update|Change data values|
+|delete|Delete rows|
+|alterTable|Change the attributes or structure of a table|
+|alterCaslib|Change the properties of a CASLIB|
+|manageAccess|Set access controls|
 ## Contributing
 We welcome your contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to submit contributions to this project.
 ## License
