@@ -1,3 +1,5 @@
+Archive notice: This project is no longer under active development and was archived on 2024-10-23.
+
 # SAS Viya Authorization Model
 [![Apache License 2.0](https://img.shields.io/badge/license-Apache%202-blue)](http://www.apache.org/licenses/)
 ## Intent
